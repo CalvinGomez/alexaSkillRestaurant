@@ -55,16 +55,37 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
     var collectionItem = db.get('items');
     var name = req.params.name;
     var meal_type = req.params.meal_type;
+    var resp = []
     collectionRestaurant.find({
         "name": name
     },{},function(e,restaurant) {
-        collectionItem.find({
-            "restaurant_id": restaurant[0]._id.toString(),
-            "meal_type": meal_type    
-        },{},function(e,items) {
-            res.json(items);
-        });
+        if (isEmptyObject(restaurant)) {
+            resp.push({
+                status: "failure", 
+                err: "Could not find restaurant!"
+            })
+            res.json(resp);
+        }
+        else {
+            collectionItem.find({
+                "restaurant_id": restaurant[0]._id.toString(),
+                "meal_type": meal_type    
+            },{},function(e,items) {
+                if (isEmptyObject(items)) {       
+                    resp.push({status: "failure", err: "Could not find restaurant!"})
+                    res.json(resp); 
+                }
+                else {
+                    resp.push({status: "success", err: "", resp: items})
+                    res.json(resp);
+                }
+            });  
+        }        
     });
 });
+
+function isEmptyObject(obj) {
+  return !Object.keys(obj).length;
+}
 
 module.exports = router;
