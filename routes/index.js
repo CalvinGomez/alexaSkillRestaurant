@@ -10,8 +10,8 @@ router.get('/', function(req, res, next) {
 router.get('/restaurants', function(req, res, next) {
 	var db = req.db;
     var collection = db.get('restaurants');
-	collection.find({},{},function(e,docs) {
-        res.json(docs);
+	collection.find({},{},function(e,restaurants) {
+        res.json(restaurants);
     });
 });
 
@@ -22,8 +22,8 @@ router.get('/restaurant/:name', function(req, res, next) {
     var name = req.params.name;
     collection.find({
         "name": name
-    },{},function(e,docs) {
-        res.json(docs);
+    },{},function(e,restaurant) {
+        res.json(restaurant);
     });
 });
 
@@ -31,8 +31,8 @@ router.get('/restaurant/:name', function(req, res, next) {
 router.get('/items', function(req, res, next) {
     var db = req.db;
     var collection = db.get('items');
-    collection.find({},{},function(e,docs) {
-        res.json(docs);
+    collection.find({},{},function(e,items) {
+        res.json(items);
     });
 });
 
@@ -43,8 +43,8 @@ router.get('/items/:id', function(req, res, next) {
     var id = req.params.id;
     collection.find({
         "restaurant_id": id
-    },{},function(e,docs) {
-        res.json(docs);
+    },{},function(e,items) {
+        res.json(items);
     });
 });
 
@@ -57,12 +57,12 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
     var meal_type = req.params.meal_type;
     collectionRestaurant.find({
         "name": name
-    },{},function(e,docs) {
+    },{},function(e,restaurant) {
         collectionItem.find({
-            "restaurant_id": docs[0]._id.toString(),
+            "restaurant_id": restaurant[0]._id.toString(),
             "meal_type": meal_type    
-        },{},function(e,docs1) {
-            res.json(docs1);
+        },{},function(e,items) {
+            res.json(items);
         });
     });
 });
