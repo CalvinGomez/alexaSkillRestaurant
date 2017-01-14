@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var helpers = require('../helpers/utilities');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -10,9 +11,26 @@ router.get('/', function(req, res, next) {
 router.get('/restaurants', function(req, res, next) {
 	var db = req.db;
     var collection = db.get('restaurants');
-	collection.find({},{},function(e,restaurants) {
-        res.json(restaurants);
-    });
+    var resp = []
+	collection.find({},{},simpleCallback);
+
+    function simpleCallback (e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There is no such restaurant!"
+            })
+            res.json(resp); 
+        }
+        else {
+            resp.push({
+                status: "success", 
+                err: "", 
+                resp: docs
+            })
+            res.json(resp);
+        }
+    }
 });
 
 /* GET details of restaurant by name  */
@@ -20,20 +38,54 @@ router.get('/restaurant/:name', function(req, res, next) {
     var db = req.db;
     var collection = db.get('restaurants');
     var name = req.params.name;
+    var resp = []
     collection.find({
         "name": name
-    },{},function(e,restaurant) {
-        res.json(restaurant);
-    });
+    },{},simpleCallback);
+
+    function simpleCallback (e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There is no such restaurant!"
+            })
+            res.json(resp); 
+        }
+        else {
+            resp.push({
+                status: "success", 
+                err: "", 
+                resp: docs
+            })
+            res.json(resp);
+        }
+    }
 });
 
 /* GET details of all items. */
 router.get('/items', function(req, res, next) {
     var db = req.db;
     var collection = db.get('items');
-    collection.find({},{},function(e,items) {
-        res.json(items);
-    });
+    var resp = []
+    collection.find({},{},simpleCallback);
+
+    function simpleCallback (e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There is no such restaurant!"
+            })
+            res.json(resp); 
+        }
+        else {
+            resp.push({
+                status: "success", 
+                err: "", 
+                resp: docs
+            })
+            res.json(resp);
+        }
+    }
 });
 
 /* GET details of all items from specific restaurant. */
@@ -41,11 +93,28 @@ router.get('/items/:id', function(req, res, next) {
     var db = req.db;
     var collection = db.get('items');
     var id = req.params.id;
+    var resp = []
     collection.find({
         "restaurant_id": id
-    },{},function(e,items) {
-        res.json(items);
-    });
+    },{},simpleCallback);
+
+    function simpleCallback (e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There is no such restaurant!"
+            })
+            res.json(resp); 
+        }
+        else {
+            resp.push({
+                status: "success", 
+                err: "", 
+                resp: docs
+            })
+            res.json(resp);
+        }
+    }
 });
 
 /* GET details of all items from specific restaurant for specific mealtype. */
@@ -58,8 +127,10 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
     var resp = []
     collectionRestaurant.find({
         "name": name
-    },{},function(e,restaurant) {
-        if (isEmptyObject(restaurant)) {
+    },{},firstCallback);
+
+    function firstCallback(e,docs) {
+        if (helpers.isEmptyObject(docs)) {
             resp.push({
                 status: "failure", 
                 err: "Could not find restaurant!"
@@ -68,26 +139,29 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
         }
         else {
             collectionItem.find({
-                "restaurant_id": restaurant[0]._id.toString(),
+                "restaurant_id": docs[0]._id.toString(),
                 "meal_type": meal_type    
-            },{},function(e,items) {
-                if (isEmptyObject(items)) {       
-                    resp.push({
-                        status: "failure", 
-                        err: "There is no such meal type!"
-                    })
-                    res.json(resp); 
-                }
-                else {
-                    resp.push({
-                        status: "success", 
-                        err: "", 
-                        resp: items})
-                    res.json(resp);
-                }
-            });  
+            },{},secondCallback);  
         }        
-    });
+    }
+
+    function secondCallback(e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There is no such meal type!"
+            })
+            res.json(resp); 
+        }
+        else {
+            resp.push({
+                status: "success", 
+                err: "", 
+                resp: docs
+            })
+            res.json(resp);
+        }
+    }
 });
 
 /* GET details of all items from specific restaurant for specific mealtype. */
@@ -101,8 +175,10 @@ router.get('/items/:name/:meal_type/:diet_type', function(req, res, next) {
     var resp = []
     collectionRestaurant.find({
         "name": name
-    },{},function(e,restaurant) {
-        if (isEmptyObject(restaurant)) {
+    },{},firstCallback);
+
+    function firstCallback(e,docs) {
+        if (helpers.isEmptyObject(docs)) {
             resp.push({
                 status: "failure", 
                 err: "Could not find restaurant!"
@@ -111,62 +187,44 @@ router.get('/items/:name/:meal_type/:diet_type', function(req, res, next) {
         }
         else {
             collectionItem.find({
-                "restaurant_id": restaurant[0]._id.toString(),
+                "restaurant_id": docs[0]._id.toString(),
                 "meal_type": meal_type    
-            },{},function(e,items) {
-                if (isEmptyObject(items)) {       
-                    resp.push({
-                        status: "failure", 
-                        err: "There is no such meal type!"
-                    })
-                    res.json(resp); 
-                }
-                else {
-                    var itemsWithDietType = []
-                    for (var i = 0; i < items.length; i++) {
-                        if (isDietTypePresent(items[i].diet_type, diet_type)) {
-                            itemsWithDietType.push(items[i])
-                        }
-                    }
-                    if (isEmptyObject(itemsWithDietType)) {       
-                        resp.push({
-                            status: "failure", 
-                            err: "There is no such diet type!"
-                        })
-                        res.json(resp); 
-                    }
-                    else {
-                        resp.push({
-                            status: "success", 
-                            err: "", 
-                            resp: itemsWithDietType
-                        })
-                        res.json(resp);
-                    }
-                }
-            });  
+            },{},secondCallback);  
         }        
-    });
-});
+    }
 
-function isEmptyObject(obj) {
-  return !Object.keys(obj).length;
-}
-
-function isDietTypePresent(types, diet_type) {
-    var flag = 0
-    for (var i = 0; i < types.length; i++) {
-        if (diet_type == types[i].type) {
-            flag = 1
-            break
+    function secondCallback(e,items) {
+        if (helpers.isEmptyObject(items)) {       
+            resp.push({
+                status: "failure", 
+                err: "There is no such meal type!"
+            })
+            res.json(resp); 
+        }
+        else {
+            var itemsWithDietType = []
+            for (var i = 0; i < items.length; i++) {
+                if (helpers.isDietTypePresent(items[i].diet_type, diet_type)) {
+                    itemsWithDietType.push(items[i])
+                }
+            }
+            if (helpers.isEmptyObject(itemsWithDietType)) {       
+                resp.push({
+                    status: "failure", 
+                    err: "There is no such diet type!"
+                })
+                res.json(resp); 
+            }
+            else {
+                resp.push({
+                    status: "success", 
+                    err: "", 
+                    resp: itemsWithDietType
+                })
+                res.json(resp);
+            }
         }
     }
-    if (flag == 1) {
-        return true
-    }
-    else {
-        return false
-    }
-}
+});
 
 module.exports = router;
