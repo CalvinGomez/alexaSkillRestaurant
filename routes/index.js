@@ -72,12 +72,77 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
                 "meal_type": meal_type    
             },{},function(e,items) {
                 if (isEmptyObject(items)) {       
-                    resp.push({status: "failure", err: "There is no such meal type!"})
+                    resp.push({
+                        status: "failure", 
+                        err: "There is no such meal type!"
+                    })
                     res.json(resp); 
                 }
                 else {
-                    resp.push({status: "success", err: "", resp: items})
+                    resp.push({
+                        status: "success", 
+                        err: "", 
+                        resp: items})
                     res.json(resp);
+                }
+            });  
+        }        
+    });
+});
+
+/* GET details of all items from specific restaurant for specific mealtype. */
+router.get('/items/:name/:meal_type/:diet_type', function(req, res, next) {
+    var db = req.db;
+    var collectionRestaurant = db.get('restaurants');
+    var collectionItem = db.get('items');
+    var name = req.params.name;
+    var meal_type = req.params.meal_type;
+    var diet_type = req.params.diet_type;
+    var resp = []
+    collectionRestaurant.find({
+        "name": name
+    },{},function(e,restaurant) {
+        if (isEmptyObject(restaurant)) {
+            resp.push({
+                status: "failure", 
+                err: "Could not find restaurant!"
+            })
+            res.json(resp);
+        }
+        else {
+            collectionItem.find({
+                "restaurant_id": restaurant[0]._id.toString(),
+                "meal_type": meal_type    
+            },{},function(e,items) {
+                if (isEmptyObject(items)) {       
+                    resp.push({
+                        status: "failure", 
+                        err: "There is no such meal type!"
+                    })
+                    res.json(resp); 
+                }
+                else {
+                    var itemsWithDietType = []
+                    for (var i = 0; i < items.length; i++) {
+                        if (isDietTypePresent(items[i].diet_type, diet_type)) {
+                            itemsWithDietType.push(items[i])
+                        }
+                    }
+                    if (isEmptyObject(itemsWithDietType)) {       
+                        resp.push({
+                            status: "failure", 
+                            err: "There is no such diet type!"
+                        })
+                        res.json(resp); 
+                    }
+                    else {
+                        resp.push({
+                            status: "success", 
+                            err: "", 
+                            resp: itemsWithDietType
+                        })
+                        res.json(resp);
+                    }
                 }
             });  
         }        
@@ -86,6 +151,22 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
 
 function isEmptyObject(obj) {
   return !Object.keys(obj).length;
+}
+
+function isDietTypePresent(types, diet_type) {
+    var flag = 0
+    for (var i = 0; i < types.length; i++) {
+        if (diet_type == types[i].type) {
+            flag = 1
+            break
+        }
+    }
+    if (flag == 1) {
+        return true
+    }
+    else {
+        return false
+    }
 }
 
 module.exports = router;
