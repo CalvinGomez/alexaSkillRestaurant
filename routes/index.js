@@ -65,7 +65,7 @@ router.get('/restaurant/:name', function(req, res, next) {
 /* GET details of all items. */
 router.get('/items', function(req, res, next) {
     var db = req.db;
-    var collection = db.get('items');
+    var collection = db.get('item_test');
     var resp = []
     collection.find({},{},simpleCallback);
 
@@ -91,7 +91,7 @@ router.get('/items', function(req, res, next) {
 /* GET details of all items from specific restaurant. */
 router.get('/items/:id', function(req, res, next) {
     var db = req.db;
-    var collection = db.get('items');
+    var collection = db.get('item_test');
     var id = req.params.id;
     var resp = []
     collection.find({
@@ -121,7 +121,7 @@ router.get('/items/:id', function(req, res, next) {
 router.get('/items/:name/:meal_type', function(req, res, next) {
     var db = req.db;
     var collectionRestaurant = db.get('restaurant_test');
-    var collectionItem = db.get('items');
+    var collectionItem = db.get('item_test');
     var name = req.params.name;
     var meal_type = req.params.meal_type;
     var resp = []
@@ -168,7 +168,7 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
 router.get('/items/:name/:meal_type/:diet_type', function(req, res, next) {
     var db = req.db;
     var collectionRestaurant = db.get('restaurant_test');
-    var collectionItem = db.get('items');
+    var collectionItem = db.get('item_test');
     var name = req.params.name;
     var meal_type = req.params.meal_type;
     var diet_type = req.params.diet_type;
