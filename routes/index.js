@@ -126,20 +126,43 @@ router.get('/items', function(req, res, next) {
 });
 
 /* GET details of all items from specific restaurant. */
-router.get('/items/:id', function(req, res, next) {
+router.get('/items/:name', function(req, res, next) {
     var db = req.db;
-    var collection = db.get('item_test');
+    var collectionItems = db.get('item_test');
+    var collectionRestaurants = db.get('restaurant_test');
+    var name = req.params.name;
     var id = req.params.id;
     var resp = []
-    collection.find({
-        "restaurant_id": id
-    },{},simpleCallback);
+    collectionRestaurants.find({
+        "name": name
+    },{},firstCallback);
 
-    function simpleCallback (e,docs) {
+    function firstCallback (e,docs) {
         if (helpers.isEmptyObject(docs)) {       
             resp.push({
                 status: "failure", 
                 err: "There is no such restaurant!"
+            })
+            res.json(resp); 
+        }
+        else {
+            collectionItems.find({
+                "restaurant_id": docs[0]._id.toString()
+            },{},secondCallback);
+            // resp.push({
+            //     status: "success", 
+            //     err: "", 
+            //     resp: docs
+            // })
+            // res.json(resp);
+        }
+    }
+
+    function secondCallback(e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There are no items for this restaurant!"
             })
             res.json(resp); 
         }
@@ -149,7 +172,7 @@ router.get('/items/:id', function(req, res, next) {
                 err: "", 
                 resp: docs
             })
-            res.json(resp);
+            res.json(resp); 
         }
     }
 });
