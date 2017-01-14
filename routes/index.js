@@ -72,7 +72,7 @@ router.get('/items/:name/:meal_type', function(req, res, next) {
                 "meal_type": meal_type    
             },{},function(e,items) {
                 if (isEmptyObject(items)) {       
-                    resp.push({status: "failure", err: "Could not find restaurant!"})
+                    resp.push({status: "failure", err: "There is no such meal type!"})
                     res.json(resp); 
                 }
                 else {
