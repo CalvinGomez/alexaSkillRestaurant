@@ -65,26 +65,63 @@ router.get('/restaurant/:name', function(req, res, next) {
 /* GET details of all items. */
 router.get('/items', function(req, res, next) {
     var db = req.db;
-    var collection = db.get('item_test');
+    var collectionItems = db.get('item_test');
+    var collectionRestaurants = db.get('restaurant_test');
+    var list_of_restaurants = []
+    var list_of_items = []
     var resp = []
-    collection.find({},{},simpleCallback);
+    collectionItems.find({},{},firstCallback);
 
-    function simpleCallback (e,docs) {
+    function firstCallback (e,docs) {
         if (helpers.isEmptyObject(docs)) {       
             resp.push({
                 status: "failure", 
-                err: "There is no such restaurant!"
+                err: "There are no items!"
             })
             res.json(resp); 
         }
         else {
-            resp.push({
-                status: "success", 
-                err: "", 
-                resp: docs
-            })
-            res.json(resp);
+            list_of_items = docs
+            collectionRestaurants.find({},{},secondCallback);
         }
+    }
+
+    function secondCallback(e,docs) {
+        if (helpers.isEmptyObject(docs)) {       
+            resp.push({
+                status: "failure", 
+                err: "There are no restaurants!"
+            })
+            res.json(resp); 
+        }
+        else {     
+            list_of_restaurants = docs
+            combineJSON()
+        }
+    }
+
+    function combineJSON() {
+        final_resp = []
+        temp = []
+        for (var i = 0; i < list_of_restaurants.length; i++) {
+            for (var j = 0; j < list_of_items.length; j++) {
+                if (list_of_items[j].restaurant_id == list_of_restaurants[i]._id.toString()) {
+                    temp.push({
+                        name: list_of_items[j].name,
+                        meal_type: list_of_items[j].meal_type,
+                        diet_type: list_of_items[j].diet_type,
+                        restaurant_id: list_of_items[j].restaurant_id,
+                        restaurant_name: list_of_restaurants[i].name
+                    })
+                }
+            }
+        }
+        final_resp.push({
+            status: "success", 
+            err: "",
+            resp: temp
+        })
+        res.json(final_resp);
     }
 });
 
